@@ -4,6 +4,7 @@ class Survivor {
   final DateTime startDate;
   final int lives;
   final List<Match> competition;
+  bool isJoined;
 
   Survivor({
     required this.id,
@@ -11,6 +12,7 @@ class Survivor {
     required this.startDate,
     required this.lives,
     required this.competition,
+    this.isJoined = false
   });
 
   factory Survivor.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class Survivor {
       competition: (json['competition'] as List)
           .map((m) => Match.fromJson(m))
           .toList(),
+      isJoined: false,
     );
   }
 }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import '../models/survivor.dart';
-import '../widgets/match_list_card.dart'; // 👈 importante para reutilizar el estilo de partido
+import '../widgets/match_list_card.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'survivor_matches_page.dart';
+import 'survivor_matches_page.dart'; // 👈 cambio aquí
 
 class SurvivorListPage extends StatefulWidget {
-  const SurvivorListPage({super.key});
+  final String userId;
+
+  const SurvivorListPage({super.key, required this.userId});
 
   @override
   State<SurvivorListPage> createState() => _SurvivorListPageState();
@@ -27,9 +29,37 @@ class _SurvivorListPageState extends State<SurvivorListPage> {
     );
     if (response.statusCode == 200) {
       List jsonList = json.decode(response.body);
-      return jsonList.map((json) => Survivor.fromJson(json)).toList();
+      return jsonList
+          .map((json) => Survivor.fromJson(json)..isJoined = false)
+          .toList();
     } else {
       throw Exception('Error al cargar las ligas');
+    }
+  }
+
+  Future<bool> joinSurvivor(String survivorId) async {
+    final url = Uri.parse(
+      "http://localhost:4300/api/survivor/join/$survivorId",
+    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"userId": widget.userId}),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else if (response.statusCode == 400 &&
+          response.body.contains('User already joined')) {
+        return true;
+      } else {
+        print("Error joining survivor: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("Error connecting to backend: $e");
+      return false;
     }
   }
 
@@ -38,23 +68,18 @@ class _SurvivorListPageState extends State<SurvivorListPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // --- Fondo con imagen ---
+          // Fondo
           Positioned.fill(
             child: Image.asset('assets/stadium.png', fit: BoxFit.cover),
           ),
-          // --- Contenido principal ---
+          Positioned.fill(
+            child: Container(color: Colors.black.withOpacity(0.6)),
+          ),
+
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Botón de volver
-                IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.orangeAccent,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                ),
                 const Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Text(
@@ -96,6 +121,7 @@ class _SurvivorListPageState extends State<SurvivorListPage> {
                         itemCount: ligas.length,
                         itemBuilder: (context, index) {
                           final liga = ligas[index];
+
                           return Card(
                             color: Colors.black54,
                             shape: RoundedRectangleBorder(
@@ -131,7 +157,7 @@ class _SurvivorListPageState extends State<SurvivorListPage> {
                                         ),
                                       ),
                                     );
-                                  }).toList()
+                                  })
                                 else
                                   const Padding(
                                     padding: EdgeInsets.all(8.0),
@@ -150,18 +176,88 @@ class _SurvivorListPageState extends State<SurvivorListPage> {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              SurvivorMatchesPage(
-                                                survivor: liga,
+                                    onPressed: () async {
+                                      if (liga.isJoined) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                SurvivorMatchesPage(
+                                                  survivor: liga,
+                                                ), // 👈
+                                          ),
+                                        );
+                                      } else {
+                                        final joined = await joinSurvivor(
+                                          liga.id,
+                                        );
+                                        if (joined) {
+                                          setState(() {
+                                            liga.isJoined = true;
+                                          });
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              backgroundColor:
+                                                  Colors.green[600],
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                               ),
-                                        ),
-                                      );
+                                              margin:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 8,
+                                                  ),
+                                              content: Row(
+                                                children: const [
+                                                  Icon(
+                                                    Icons.check_circle,
+                                                    color: Colors.white,
+                                                  ),
+                                                  SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Text(
+                                                      'Te uniste con éxito al survivor, selecciona tus partidos',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              duration: Duration(seconds: 3),
+                                            ),
+                                          );
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  SurvivorMatchesPage(
+                                                    survivor: liga,
+                                                  ), // 👈
+                                            ),
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                '❌ No se pudo unir',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }
                                     },
-                                    child: const Text("UNIRME"),
+                                    child: Text(
+                                      liga.isJoined ? "Ver partidos" : "Unirme",
+                                    ),
                                   ),
                                 ),
                               ],
