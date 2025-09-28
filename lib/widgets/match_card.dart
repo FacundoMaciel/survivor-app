@@ -1,95 +1,56 @@
 import 'package:flutter/material.dart';
 import '../models/survivor.dart';
-import 'package:intl/intl.dart';
-import '../services/pick_match_service.dart';
 
 class MatchCard extends StatelessWidget {
   final Match match;
   final String survivorId;
   final String userId;
   final DateTime startDate;
+  final String? selectedTeamId;
+  final Function(String teamId, String matchId)? onSelect;
 
   const MatchCard({
-    Key? key,
+    super.key,
     required this.match,
     required this.survivorId,
     required this.userId,
     required this.startDate,
-  }) : super(key: key);
+    this.selectedTeamId,
+    this.onSelect,
+  });
+
+  Widget _buildFlag(String flag, {double size = 32}) {
+    // Si es URL (http/https)
+    if (flag.startsWith("http")) {
+      return Image.network(flag, width: size, height: size, fit: BoxFit.cover);
+    }
+    // Si es asset (ejemplo termina en .png o .jpg)
+    if (flag.endsWith(".png") || flag.endsWith(".jpg")) {
+      return Image.asset(flag, width: size, height: size, fit: BoxFit.cover);
+    }
+    // Si es emoji → mostrar como texto
+    return Text(
+      flag,
+      style: TextStyle(fontSize: size),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1F1F1F), Color(0xFF1F1F1F)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+    return Card(
+      color: Colors.black54,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        child: Row(
+        padding: const EdgeInsets.all(12),
+        child: Column(
           children: [
-            // Equipo local
-            Expanded(
-              flex: 3,
-              child: _pickButton(
-                context,
-                label: match.home.name,
-                onTap: () => _handlePick(context, match.matchId, match.home.id),
-                alignRight: false,
-                icon: Icons.sports_soccer,
-              ),
-            ),
-
-            // Fecha y hora
-            Expanded(
-              flex: 2,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    DateFormat('d MMM', 'es').format(startDate).toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    DateFormat('HH:mm').format(startDate),
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Equipo visitante
-            Expanded(
-              flex: 3,
-              child: _pickButton(
-                context,
-                label: match.visitor.name,
-                onTap: () =>
-                    _handlePick(context, match.matchId, match.visitor.id),
-                alignRight: true,
-                icon: Icons.sports_soccer_outlined,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _teamButton(match.home),
+                const Text("vs", style: TextStyle(color: Colors.white)),
+                _teamButton(match.visitor),
+              ],
             ),
           ],
         ),
@@ -97,93 +58,28 @@ class MatchCard extends StatelessWidget {
     );
   }
 
-  Widget _pickButton(
-    BuildContext context, {
-    required String label,
-    required VoidCallback onTap,
-    bool alignRight = false,
-    IconData? icon,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        splashColor: Colors.transparent,
-        hoverColor: Colors.deepPurpleAccent,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.black26,
-            borderRadius: BorderRadius.circular(12),
+  Widget _teamButton(Team team) {
+    final isSelected = selectedTeamId == team.id;
+
+    return GestureDetector(
+      onTap: () {
+        if (onSelect != null) {
+          onSelect!(team.id, match.matchId);
+        }
+      },
+      child: Column(
+        children: [
+          _buildFlag(team.flag, size: 40),
+          const SizedBox(height: 6),
+          Text(
+            team.name,
+            style: TextStyle(
+              color: isSelected ? Colors.orangeAccent : Colors.white,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: alignRight
-                ? MainAxisAlignment.end
-                : MainAxisAlignment.start,
-            children: [
-              if (!alignRight && icon != null) ...[
-                Icon(icon, size: 18, color: Colors.white70),
-                const SizedBox(width: 6),
-              ],
-              Flexible(
-                child: Text(
-                  label.toUpperCase(),
-                  textAlign: alignRight ? TextAlign.right : TextAlign.left,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              if (alignRight && icon != null) ...[
-                const SizedBox(width: 6),
-                Icon(icon, size: 18, color: Colors.white70),
-              ],
-            ],
-          ),
-        ),
+        ],
       ),
     );
-  }
-
-  //   Future<void> _handlePick(
-  //       BuildContext context, String matchId, String teamId) async {
-  //     try {
-  //       await sendPick(
-  //         matchId: matchId,
-  //         teamId: teamId,
-  //         survivorId: '',
-  //       );
-
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('Pick registrado')),
-  //       );
-  //     } catch (e) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('Error: $e')),
-  //       );
-  //     }
-  //   }
-  // }
-
-  Future<void> _handlePick(
-    BuildContext context,
-    String matchId,
-    String teamId,
-  ) async {
-    try {
-      await sendPick(survivorId: '123', matchId: matchId, teamId: teamId);
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Pick registrado')));
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
   }
 }
