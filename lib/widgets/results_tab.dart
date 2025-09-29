@@ -20,6 +20,7 @@ class _ResultadosTabState extends State<ResultadosTab>
     with AutomaticKeepAliveClientMixin {
   bool simulationDone = false;
   List<Map<String, dynamic>> results = [];
+  bool isLoading = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -29,8 +30,14 @@ class _ResultadosTabState extends State<ResultadosTab>
       "http://localhost:4300/api/survivor/simulate/${widget.survivorId}",
     );
 
+    setState(() => isLoading = true);
+
     try {
-      final response = await http.post(url);
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"userId": widget.userId}),
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -43,22 +50,36 @@ class _ResultadosTabState extends State<ResultadosTab>
 
           return {
             "matchId": matchId,
-            "winner": resultData["winner"], // { name, flag } o null
-            "userTeam": resultData["userTeam"], // <- tu selección
+            "winner": resultData["winner"],
+            "userTeam": resultData["userTeam"],
           };
         }).toList();
 
         setState(() {
-          simulationDone = true;
+          simulationDone = true; 
           results = parsedResults;
         });
 
         debugPrint("Resultados parseados: $results");
       } else {
         debugPrint("Error simulando: ${response.body}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("⚠️ Error: ${response.body}"),
+            backgroundColor: Colors.orange,
+          ),
+        );
       }
     } catch (e) {
       debugPrint("Error simulando: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("⚠️ Error en la simulación"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
@@ -77,17 +98,24 @@ class _ResultadosTabState extends State<ResultadosTab>
   Widget build(BuildContext context) {
     super.build(context);
 
-    if (!simulationDone) {
+    // 🔹 Si no hay resultados todavía, mostrar botón de simulación
+    if (results.isEmpty) {
       return Center(
         child: ElevatedButton.icon(
-          onPressed: simulateSurvivor,
-          icon: const Icon(Icons.play_arrow),
+          onPressed: isLoading ? null : simulateSurvivor,
+          icon: isLoading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.play_arrow),
           label: const Text("Simular"),
         ),
       );
     }
 
-    // 🔹 Un solo menú para todos los partidos
+    // 🔹 Si ya hay resultados, mostrar el listado en un ExpansionTile
     return ListView(
       padding: const EdgeInsets.all(12),
       children: [

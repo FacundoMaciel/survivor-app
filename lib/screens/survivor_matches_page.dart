@@ -30,17 +30,20 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
   bool alreadyJoined = false;
   bool simulationDone = false;
 
-  int? userLives; // 🔹 vidas actuales del usuario
+  int? userLives;
+  int? userPosition;
+  int? totalPlayers;
+  int? activePlayers;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     selectedSurvivor = widget.survivor;
-    fetchUserStatus(); // al cargar traemos vidas del usuario
+    fetchUserStatus(); // al cargar traemos vidas, posición y sobrevivientes
   }
 
-  /// Traer estado actual (vidas, eliminado, etc.)
+  /// Traer estado actual (vidas, posición, sobrevivientes, etc.)
   Future<void> fetchUserStatus() async {
     final url = Uri.parse(
       "http://localhost:4300/api/survivor/status/${widget.userId}/${widget.survivor.id}",
@@ -52,7 +55,10 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
         final data = jsonDecode(response.body);
         setState(() {
           userLives = data["lives"];
-          alreadyJoined = true;
+          userPosition = data["position"];
+          totalPlayers = data["total"];
+          activePlayers = data["active"];
+          alreadyJoined = data["joined"] ?? false;
         });
       }
     } catch (e) {
@@ -111,7 +117,7 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
               backgroundColor: Colors.green,
             ),
           );
-          fetchUserStatus(); // actualizar vidas después de unirse
+          fetchUserStatus(); // actualizar vidas/posición después de unirse
         } else {
           throw Exception(predictResponse.body);
         }
@@ -216,20 +222,22 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
                               Colors.red,
                             ),
                             _statCard(
-                              "22/12,245",
+                              userPosition != null && totalPlayers != null
+                                  ? "$userPosition/$totalPlayers"
+                                  : "-",
                               "POSICIÓN",
                               Icons.emoji_events,
                               Colors.yellow,
                             ),
                             _statCard(
-                              "\$20K",
-                              "POZO",
-                              Icons.savings,
-                              Colors.blue,
+                              activePlayers != null ? "$activePlayers" : "-",
+                              "SOBREVIVIENTES",
+                              Icons.group,
+                              Colors.green,
                             ),
                             _statCard(
                               "${survivor.competition.length}",
-                              "PARTIDOS",
+                              "JORNADAS",
                               Icons.sports_soccer,
                               Colors.white,
                             ),
@@ -259,26 +267,41 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
               // TAB "Por jugar"
               ListView(
                 padding: const EdgeInsets.all(8),
-                children: survivor.competition.map((match) {
-                  final selectedTeamId = selectedTeams[match.matchId];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: MatchCard(
-                        match: match,
-                        survivorId: survivor.id,
-                        userId: widget.userId,
-                        startDate: survivor.startDate,
-                        selectedTeamId: selectedTeamId,
-                        onSelect: (teamId, matchId) {
-                          setState(() {
-                            selectedTeams[matchId] = teamId;
-                          });
-                        },
+                children: survivor.competition.expand((jornada) {
+                  return [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Text(
+                        "Jornada ${jornada.jornada}",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orangeAccent,
+                        ),
                       ),
                     ),
-                  );
+                    ...jornada.matches.map((match) {
+                      final selectedTeamId = selectedTeams[match.matchId];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: MatchCard(
+                            match: match,
+                            survivorId: survivor.id,
+                            userId: widget.userId,
+                            startDate: survivor.startDate,
+                            selectedTeamId: selectedTeamId,
+                            onSelect: (teamId, matchId) {
+                              setState(() {
+                                selectedTeams[matchId] = teamId;
+                              });
+                            },
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ];
                 }).toList(),
               ),
 

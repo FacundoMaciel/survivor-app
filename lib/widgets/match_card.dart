@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/survivor.dart';
 
 class MatchCard extends StatelessWidget {
@@ -20,23 +21,22 @@ class MatchCard extends StatelessWidget {
   });
 
   Widget _buildFlag(String flag, {double size = 32}) {
-    // Si es URL (http/https)
+    if (flag.isEmpty) {
+      return Icon(Icons.flag, size: size, color: Colors.grey);
+    }
     if (flag.startsWith("http")) {
       return Image.network(flag, width: size, height: size, fit: BoxFit.cover);
     }
-    // Si es asset (ejemplo termina en .png o .jpg)
     if (flag.endsWith(".png") || flag.endsWith(".jpg")) {
       return Image.asset(flag, width: size, height: size, fit: BoxFit.cover);
     }
-    // Si es emoji → mostrar como texto
-    return Text(
-      flag,
-      style: TextStyle(fontSize: size),
-    );
+    return Text(flag, style: TextStyle(fontSize: size));
   }
 
   @override
   Widget build(BuildContext context) {
+    final formattedTime = DateFormat("dd/MM HH:mm").format(match.date);
+
     return Card(
       color: Colors.black54,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -48,7 +48,21 @@ class MatchCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _teamButton(match.home),
-                const Text("vs", style: TextStyle(color: Colors.white)),
+                Column(
+                  children: [
+                    const Icon(Icons.access_time,
+                        color: Colors.white70, size: 16),
+                    const SizedBox(height: 4),
+                    Text(
+                      formattedTime,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
                 _teamButton(match.visitor),
               ],
             ),
