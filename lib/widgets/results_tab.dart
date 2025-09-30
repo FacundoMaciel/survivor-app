@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../config.dart';
 
 class ResultadosTab extends StatefulWidget {
   final String survivorId;
@@ -34,7 +35,7 @@ class _ResultadosTabState extends State<ResultadosTab>
   /// 🔹 Trae los resultados ya guardados en DB
   Future<void> fetchResults() async {
     final url = Uri.parse(
-      "http://localhost:4300/api/survivor/results/${widget.userId}/${widget.survivorId}",
+      "${AppConfig.apiBaseUrl}/api/survivor/results/${widget.userId}/${widget.survivorId}",
     );
 
     try {
@@ -60,7 +61,7 @@ class _ResultadosTabState extends State<ResultadosTab>
   /// 🔹 Ejecuta simulación y luego vuelve a traer resultados actualizados
   Future<void> simulateSurvivor() async {
     final url = Uri.parse(
-      "http://localhost:4300/api/survivor/simulate/${widget.survivorId}",
+      "${AppConfig.apiBaseUrl}/api/survivor/simulate/${widget.survivorId}",
     );
 
     setState(() {

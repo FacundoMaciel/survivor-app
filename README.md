@@ -78,6 +78,7 @@ flutter pub get
 ## Uso / ejecución
 
 Para correr en dispositivo/emulador:
+En el archivo config.dar podemos encontrar la variable para correr tanto con el backend local como en producción, debemos asignar "localBaseUrl" o "prodBaseUrl"
 
 ```bash
 flutter run
@@ -122,16 +123,6 @@ Image.asset(
              height: 22,
            ),
 ```
-
-## Pruebas
-
-Para ejecutar test:
-
-```bash
-flutter test
-```
-
-(Cuando agregues tests, agregá ejemplos aquí)
 
 ## Contribución
 

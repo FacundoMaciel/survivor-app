@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/ranking.dart';
+import '../config.dart';
 
 class TableTab extends StatefulWidget {
   final String survivorId;
@@ -47,7 +48,7 @@ class _TableTabState extends State<TableTab> {
   Future<void> fetchRanking() async {
     try {
       final url = Uri.parse(
-        "http://localhost:4300/api/survivor/ranking/${widget.survivorId}",
+        "${AppConfig.apiBaseUrl}/api/survivor/ranking/${widget.survivorId}",
       );
       final response = await http.get(url);
 

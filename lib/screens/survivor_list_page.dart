@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/survivor.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'survivor_matches_page.dart'; // ✅ Import correcto
+import 'survivor_matches_page.dart';
+import '../config.dart';
+
 
 class SurvivorListPage extends StatefulWidget {
   final String userId;
@@ -24,7 +26,7 @@ class _SurvivorListPageState extends State<SurvivorListPage> {
 
   Future<List<Survivor>> fetchSurvivors() async {
     final response = await http.get(
-      Uri.parse('http://localhost:4300/api/survivor'),
+      Uri.parse("${AppConfig.apiBaseUrl}/api/survivor"), //("${AppConfig.apiBaseUrl}/survivors")
     );
     if (response.statusCode == 200) {
       List jsonList = json.decode(response.body);

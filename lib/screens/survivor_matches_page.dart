@@ -5,6 +5,7 @@ import '../models/survivor.dart';
 import '../widgets/match_card.dart';
 import '../widgets/results_tab.dart';
 import '../widgets/table_tab.dart';
+import '../config.dart';
 
 class SurvivorMatchesPage extends StatefulWidget {
   final Survivor survivor;
@@ -48,7 +49,7 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
   /// Traer estado actual (vidas, posición, sobrevivientes, etc.)
   Future<void> fetchUserStatus() async {
     final url = Uri.parse(
-      "http://localhost:4300/api/survivor/status/${widget.userId}/${widget.survivor.id}",
+      "${AppConfig.apiBaseUrl}/api/survivor/status/${widget.userId}/${widget.survivor.id}",
     );
 
     try {
@@ -83,10 +84,10 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
     setState(() => isProcessing = true);
 
     final joinUrl = Uri.parse(
-      "http://localhost:4300/api/survivor/join/${widget.survivor.id}",
+      "${AppConfig.apiBaseUrl}/api/survivor/join/${widget.survivor.id}",
     );
     final predictUrl = Uri.parse(
-      "http://localhost:4300/api/survivor/predict/${widget.survivor.id}",
+      "${AppConfig.apiBaseUrl}/api/survivor/predict/${widget.survivor.id}",
     );
 
     try {
@@ -147,7 +148,7 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
   /// Simular partidos del survivor actual
   Future<void> simulateSurvivor() async {
     final url = Uri.parse(
-      "http://localhost:4300/api/survivor/simulate/${widget.survivor.id}",
+      "${AppConfig.apiBaseUrl}/api/survivor/simulate/${widget.survivor.id}",
     );
 
     try {
