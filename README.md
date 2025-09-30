@@ -20,18 +20,18 @@ Aplicación Flutter para el modo “Survival La Liga”, donde los usuarios comp
 
 ## Demo / Capturas
 
-<img src="screenshots/captura1.png" width="400"/>
-<img src="screenshots/captura2.png" width="400"/>
-<img src="screenshots/captura3.png" width="400"/>
-<img src="screenshots/captura4.png" width="400"/>
-<img src="screenshots/captura5.png" width="400"/>
-<img src="screenshots/captura6.png" width="400"/>
-<img src="screenshots/captura7.png" width="400"/>
-<img src="screenshots/captura8.png" width="400"/>
-<img src="screenshots/captura9.png" width="400"/>
-<img src="screenshots/captura10.png" width="400"/>
-<img src="screenshots/captura11.png" width="400"/>
-<img src="screenshots/captura12.png" width="400"/>
+<img src="screenshots/Captura1.png" width="400"/>
+<img src="screenshots/Captura2.png" width="400"/>
+<img src="screenshots/Captura3.png" width="400"/>
+<img src="screenshots/Captura4.png" width="400"/>
+<img src="screenshots/Captura5.png" width="400"/>
+<img src="screenshots/Captura6.png" width="400"/>
+<img src="screenshots/Captura7.png" width="400"/>
+<img src="screenshots/Captura8.png" width="400"/>
+<img src="screenshots/Captura9.png" width="400"/>
+<img src="screenshots/Captura10.png" width="400"/>
+<img src="screenshots/Captura11.png" width="400"/>
+<img src="screenshots/Captura12.png" width="400"/>
 
 ## Características
 
