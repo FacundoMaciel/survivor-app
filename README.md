@@ -94,13 +94,11 @@ flowchart LR
   matches --> resultados[Resultados: Simular y ver resultados de la simulación]
   matches --> tabla[Tabla: Ranking de la competición survivor]
 
-  note[IMPORTANTE: Reiniciar la app tras unirse para ver la tabla correctamente. 
-  Rehacer flujo: comenzar → selección → unirme → simular. 
-  Así se crean varios usuarios para comparar resultados y ver el ranking.]:::noteStyle
+  note["⚠️ IMPORTANTE: Reiniciar la app tras unirse para ver la tabla correctamente.  
+  Rehacer flujo: comenzar → selección → unirme → simular.  
+  Así se crean varios usuarios para comparar resultados y ver el ranking."]
 
   porJugar -.-> note
-
-  classDef noteStyle fill=#fff3cd,stroke=#ffa500,stroke-width=2px,color=#000;
 ```
 
 ## Dependencias principales
