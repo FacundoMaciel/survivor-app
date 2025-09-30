@@ -1,6 +1,6 @@
 # Survivor App
 
-Aplicación Flutter para el modo “Survival La Liga”, donde los usuarios compiten por vidas, posición, pozo acumulado y supervivencia.
+Aplicación Flutter para el modo “Survival La Liga”, donde los usuarios compiten por vidas, pozo acumulado y supervivencia.
 
 ## Tabla de contenidos
 
@@ -20,7 +20,18 @@ Aplicación Flutter para el modo “Survival La Liga”, donde los usuarios comp
 
 ## Demo / Capturas
 
-_(Agregá aquí imágenes de la app)_
+<img src="screenshots/captura1.png" width="400"/>
+<img src="screenshots/captura2.png" width="400"/>
+<img src="screenshots/captura3.png" width="400"/>
+<img src="screenshots/captura4.png" width="400"/>
+<img src="screenshots/captura5.png" width="400"/>
+<img src="screenshots/captura6.png" width="400"/>
+<img src="screenshots/captura7.png" width="400"/>
+<img src="screenshots/captura8.png" width="400"/>
+<img src="screenshots/captura9.png" width="400"/>
+<img src="screenshots/captura10.png" width="400"/>
+<img src="screenshots/captura11.png" width="400"/>
+<img src="screenshots/captura12.png" width="400"/>
 
 ## Características
 
@@ -41,32 +52,28 @@ lib/
  ├── widgets/
  ├── models/
  ├── services/
- ├── providers/ (o /bloc/ /state/)
  └── utils/
 assets/
- ├── icons/
- └── images/
-docs/ (opcional)
 ```
 
 ### Navegación básica
 
 El flujo de navegación es:
 
-- Login → Home  
-- En Home: pestañas “Por jugar”, “Resultados”, “Tabla”  
+- Login logico básico para pruebas → Home page  
+- En List page: ligas y sus jornadas totales
+- Al tocar una liga, ir a Matches page pantalla de detalle  
+- En Matches page pestañas “Por jugar”, “Resultados”, “Tabla”, selección de partidos y simulación 
 - Cada pestaña muestra su contenido  
-- Al tocar un partido, ir a pantalla de detalle  
 
 ## Instalación
 
 ```bash
 git clone https://github.com/FacundoMaciel/survivor-app.git
 cd survivor-app
+npm install
 flutter pub get
 ```
-
-(Agregá aquí si necesitás configurar claves, variantes, etc.)
 
 ## Uso / ejecución
 
@@ -76,20 +83,17 @@ Para correr en dispositivo/emulador:
 flutter run
 ```
 
-Si tenés configuraciones especiales (por ambientes), describilas.
-
 ## Flujos / navegación
 
 ```mermaid
 flowchart LR
   Login --> Home
-  Home --> PorJugar
-  Home --> Resultados
-  Home --> Tabla
-  PorJugar --> MatchDetail
+  List --> Ligas para elegir
+  Matches --> PorJugar: es donde seleccionamos los partidos y tenemos la opcionde unirme con mis partidos
+  IMPORTANTE--> Para visualizar correctamente la tabla debemos reiniciar nuestra app cuando hayamos hecho la selección y unirme, se hace nuevamente el flujo, "comenzar", seleccion y unirme antes de simular. De esa manera tendriamos 2 o mas (depende de cuantos quiera) usuarios para comparar resultados y tener bien el ranking
+  Matches --> Resultados: Es donde (aplicado para pruebas) tenemos "simular" y el deplegable de resultados de la simulación
+  Matches --> Tabla: Es donde vemos el ranking de como quedó la competición survivor de esa lga
 ```
-
-Explicá qué acciones lleva cada pantalla.
 
 ## Dependencias principales
 
@@ -99,16 +103,18 @@ Explicá qué acciones lleva cada pantalla.
 | http / dio      | Solicitudes HTTP a API               |
 | provider / bloc | Manejo de estado                     |
 | shared_preferences | Almacenamiento local              |
-| ...             | ...                                  |
 
 ## Assets / íconos / recursos
 
-Los íconos SVG se encuentran en `assets/icons/`.  
-Se usa `app_icons.dart` para referenciarlos.  
+Los íconos SVG e imagenes se encuentran en `assets/`.  
 Ejemplo de uso:
 
 ```dart
-SvgPicture.asset(AppIcons.byPenka, width: 28, height: 28);
+Image.asset(
+            "assets/penkaLogo.png",
+             width: 22,
+             height: 22,
+           ),
 ```
 
 ## Pruebas
