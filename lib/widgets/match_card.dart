@@ -20,7 +20,7 @@ class MatchCard extends StatelessWidget {
     this.onSelect,
   });
 
-  Widget _buildFlag(String flag, {double size = 32}) {
+  Widget _buildFlag(String flag, {double size = 28}) {
     if (flag.isEmpty) {
       return Icon(Icons.flag, size: size, color: Colors.grey);
     }
@@ -38,41 +38,37 @@ class MatchCard extends StatelessWidget {
     final formattedTime = DateFormat("dd/MM HH:mm").format(match.date);
 
     return Card(
-      color: Colors.black54,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: const Color(0xFF2C2C2C),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            Expanded(child: _teamButton(match.home, TextAlign.start)),
+            Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _teamButton(match.home),
-                Column(
-                  children: [
-                    const Icon(Icons.access_time,
-                        color: Colors.white70, size: 16),
-                    const SizedBox(height: 4),
-                    Text(
-                      formattedTime,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                const Icon(Icons.access_time, color: Colors.white70, size: 16),
+                const SizedBox(height: 4),
+                Text(
+                  formattedTime,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                _teamButton(match.visitor),
               ],
             ),
+            Expanded(child: _teamButton(match.visitor, TextAlign.end)),
           ],
         ),
       ),
     );
   }
 
-  Widget _teamButton(Team team) {
+  Widget _teamButton(Team team, TextAlign align) {
     final isSelected = selectedTeamId == team.id;
 
     return GestureDetector(
@@ -82,11 +78,15 @@ class MatchCard extends StatelessWidget {
         }
       },
       child: Column(
+        crossAxisAlignment: align == TextAlign.start
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.end,
         children: [
-          _buildFlag(team.flag, size: 40),
+          _buildFlag(team.flag, size: 36),
           const SizedBox(height: 6),
           Text(
             team.name,
+            textAlign: align,
             style: TextStyle(
               color: isSelected ? Colors.orangeAccent : Colors.white,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

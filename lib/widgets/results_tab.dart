@@ -25,12 +25,47 @@ class _ResultadosTabState extends State<ResultadosTab>
   @override
   bool get wantKeepAlive => true;
 
+  @override
+  void initState() {
+    super.initState();
+    fetchResults();
+  }
+
+  /// 🔹 Trae los resultados ya guardados en DB
+  Future<void> fetchResults() async {
+    final url = Uri.parse(
+      "http://localhost:4300/api/survivor/results/${widget.userId}/${widget.survivorId}",
+    );
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        setState(() {
+          results = List<Map<String, dynamic>>.from(data["results"]);
+          simulationDone = data["simulationDone"] ?? false;
+        });
+
+        debugPrint("Resultados cargados: $results");
+      } else {
+        debugPrint("Error obteniendo resultados: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("Error fetchResults: $e");
+    }
+  }
+
+  /// 🔹 Ejecuta simulación y luego vuelve a traer resultados actualizados
   Future<void> simulateSurvivor() async {
     final url = Uri.parse(
       "http://localhost:4300/api/survivor/simulate/${widget.survivorId}",
     );
 
-    setState(() => isLoading = true);
+    setState(() {
+      isLoading = true;
+    });
 
     try {
       final response = await http.post(
@@ -40,27 +75,8 @@ class _ResultadosTabState extends State<ResultadosTab>
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        final resultsMap = data["results"] as Map<String, dynamic>;
-
-        final parsedResults = resultsMap.entries.map((entry) {
-          final matchId = entry.key;
-          final resultData = entry.value as Map<String, dynamic>;
-
-          return {
-            "matchId": matchId,
-            "winner": resultData["winner"],
-            "userTeam": resultData["userTeam"],
-          };
-        }).toList();
-
-        setState(() {
-          simulationDone = true; 
-          results = parsedResults;
-        });
-
-        debugPrint("Resultados parseados: $results");
+        debugPrint("Simulación guardada en backend");
+        await fetchResults(); // 🔹 refrescamos los datos desde DB
       } else {
         debugPrint("Error simulando: ${response.body}");
         ScaffoldMessenger.of(context).showSnackBar(
@@ -83,68 +99,87 @@ class _ResultadosTabState extends State<ResultadosTab>
     }
   }
 
+  /// 🔹 Determina estado del usuario en cada partido
   String _getStatus(Map<String, dynamic> match) {
-    if (match["winner"] == null) return "Empate ⚪";
-
-    if (match["userTeam"] != null &&
-        match["winner"]["name"] == match["userTeam"]["name"]) {
-      return "Ganaste ✅";
-    } else {
-      return "Perdiste ❌";
+    switch (match["result"]) {
+      case "success":
+        return "Ganaste ✅";
+      case "fail":
+        return "Perdiste ❌";
+      case "pending":
+        return "Pendiente ⏳";
+      default:
+        return "No participaste ⚪";
     }
+  }
+
+  /// 🔹 Devuelve nombre del equipo elegido por el usuario
+  String _getUserTeamName(Map<String, dynamic> match) {
+    if (match["home"]["_id"] == match["userTeam"]) {
+      return match["home"]["name"];
+    }
+    if (match["visitor"]["_id"] == match["userTeam"]) {
+      return match["visitor"]["name"];
+    }
+    return "No elegido";
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    // 🔹 Si no hay resultados todavía, mostrar botón de simulación
-    if (results.isEmpty) {
-      return Center(
-        child: ElevatedButton.icon(
-          onPressed: isLoading ? null : simulateSurvivor,
-          icon: isLoading
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.play_arrow),
-          label: const Text("Simular"),
-        ),
-      );
-    }
+    // 🔹 Mostrar botón de simulación si no se hizo
+    final showSimulateButton = !simulationDone;
 
-    // 🔹 Si ya hay resultados, mostrar el listado en un ExpansionTile
-    return ListView(
-      padding: const EdgeInsets.all(12),
+    return Column(
       children: [
-        ExpansionTile(
-          leading: const Icon(Icons.sports_soccer, color: Colors.orange),
-          title: const Text(
-            "Resultados de la simulación",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          children: results.map((match) {
-            return ListTile(
-              leading: match["winner"] != null
-                  ? Text(
-                      match["winner"]["flag"],
-                      style: const TextStyle(fontSize: 24),
+        if (showSimulateButton)
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: ElevatedButton.icon(
+              onPressed: isLoading ? null : simulateSurvivor,
+              icon: isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.remove_circle, color: Colors.grey),
-              title: Text("Partido ${match['matchId']}"),
-              subtitle: Text(
-                match["winner"] != null
-                    ? "Ganador: ${match["winner"]["name"]}"
-                    : "Empate",
+                  : const Icon(Icons.play_arrow),
+              label: const Text("Simular"),
+            ),
+          ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(12),
+            children: [
+              ExpansionTile(
+                leading: const Icon(Icons.sports_soccer, color: Colors.orange),
+                title: const Text(
+                  "Resultados de la simulación",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                children: results.map((match) {
+                  return ListTile(
+                    leading: match["winner"] != null
+                        ? Text(
+                            match["winner"]["flag"],
+                            style: const TextStyle(fontSize: 24),
+                          )
+                        : const Icon(Icons.remove_circle, color: Colors.grey),
+                    title: Text("Partido ${match['matchId']}"),
+                    subtitle: Text(
+                      "Tu equipo: ${_getUserTeamName(match)}\n"
+                      "Ganador: ${match["winner"] != null ? match["winner"]["name"] : "Empate"}",
+                    ),
+                    trailing: Text(
+                      _getStatus(match),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  );
+                }).toList(),
               ),
-              trailing: Text(
-                _getStatus(match),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            );
-          }).toList(),
+            ],
+          ),
         ),
       ],
     );

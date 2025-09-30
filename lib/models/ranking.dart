@@ -1,7 +1,7 @@
 class RankingEntry {
   final String userId;
-  final int score;
-  final int lives;
+  final double score;
+  final double lives;
   final bool eliminated;
 
   RankingEntry({
@@ -14,8 +14,8 @@ class RankingEntry {
   factory RankingEntry.fromJson(Map<String, dynamic> json) {
     return RankingEntry(
       userId: json['userId'] ?? '',
-      score: json['score'] ?? 0,
-      lives: json['lives'] ?? 0,
+      score: (json['score'] ?? 0).toDouble(),
+      lives: (json['lives'] ?? 0).toDouble(),
       eliminated: json['eliminated'] ?? false,
     );
   }

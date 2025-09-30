@@ -6,8 +6,13 @@ import '../models/ranking.dart';
 
 class TableTab extends StatefulWidget {
   final String survivorId;
+  final String currentUserId; // ✅ usuario actual
 
-  const TableTab({Key? key, required this.survivorId}) : super(key: key);
+  const TableTab({
+    Key? key,
+    required this.survivorId,
+    required this.currentUserId,
+  }) : super(key: key);
 
   @override
   State<TableTab> createState() => _TableTabState();
@@ -52,6 +57,13 @@ class _TableTabState extends State<TableTab> {
             .map((r) => RankingEntry.fromJson(r))
             .toList();
 
+        // 🔹 ordenar ranking por score y luego vidas
+        rankingList.sort((a, b) {
+          final scoreDiff = b.score.compareTo(a.score);
+          if (scoreDiff != 0) return scoreDiff;
+          return b.lives.compareTo(a.lives);
+        });
+
         setState(() {
           ranking = rankingList;
           isLoading = false;
@@ -69,10 +81,7 @@ class _TableTabState extends State<TableTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
+    if (isLoading) return const Center(child: CircularProgressIndicator());
     if (ranking.isEmpty) {
       return const Center(child: Text("No hay jugadores todavía"));
     }
@@ -85,10 +94,16 @@ class _TableTabState extends State<TableTab> {
         final player = ranking[index];
         final position = index + 1;
 
-        /// Elegimos un nombre falso random
+        /// Elegimos un nombre fake random
         final fakeName = fakeNames[random.nextInt(fakeNames.length)];
 
+        // 🔹 identificar si es el usuario actual
+        final isCurrentUser = player.userId == widget.currentUserId;
+
         return ListTile(
+          tileColor: isCurrentUser
+              ? Colors.orange.shade800.withOpacity(0.5)
+              : null,
           leading: CircleAvatar(
             backgroundColor: position == 1
                 ? Colors.amber
@@ -105,15 +120,25 @@ class _TableTabState extends State<TableTab> {
               ),
             ),
           ),
-          title: Text(
-            fakeName,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: player.eliminated ? Colors.grey : Colors.white,
-            ),
+          title: Row(
+            children: [
+              Text(
+                fakeName,
+                style: TextStyle(
+                  fontWeight: isCurrentUser
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  color: player.eliminated ? Colors.grey : Colors.white,
+                ),
+              ),
+              if (position == 1) ...[
+                const SizedBox(width: 6),
+                const Icon(Icons.emoji_events, color: Colors.yellow), // 🏆
+              ],
+            ],
           ),
           subtitle: Text(
-            "Vidas: ${player.lives} | Puntos: ${player.score}",
+            "Vidas: ${player.lives <= 0 ? 0 : (player.lives % 1 == 0 ? player.lives.toInt() : player.lives)}",
             style: const TextStyle(color: Colors.white70),
           ),
           trailing: player.eliminated

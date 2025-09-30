@@ -34,12 +34,14 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
   int? userPosition;
   int? totalPlayers;
   int? activePlayers;
+  int prizePool = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     selectedSurvivor = widget.survivor;
+    prizePool = (1000 + (DateTime.now().millisecondsSinceEpoch % 5000));
     fetchUserStatus(); // al cargar traemos vidas, posición y sobrevivientes
   }
 
@@ -192,7 +194,7 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
                 fit: StackFit.expand,
                 children: [
                   Image.asset('assets/stadium.png', fit: BoxFit.cover),
-                  Container(color: Colors.black.withOpacity(0.8)),
+                  Container(color: Colors.black.withOpacity(0.6)),
                   Positioned(
                     left: 16,
                     right: 16,
@@ -200,14 +202,19 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          selectedSurvivor?.name ?? 'SURVIVOR',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 1.2,
-                          ),
+                        Row(
+                          children: [
+                            const SizedBox(width: 40,),
+                            Text(
+                              selectedSurvivor?.name ?? 'SURVIVOR',
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 12),
                         Row(
@@ -215,7 +222,7 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
                           children: [
                             _statCard(
                               userLives != null
-                                  ? "$userLives"
+                                  ? "${userLives! <= 0 ? 0 : userLives}"
                                   : "${survivor.lives}",
                               "VIDAS",
                               Icons.favorite,
@@ -230,19 +237,39 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
                               Colors.yellow,
                             ),
                             _statCard(
-                              activePlayers != null ? "$activePlayers" : "-",
-                              "SOBREVIVIENTES",
-                              Icons.group,
-                              Colors.green,
+                              "\$$prizePool",
+                              "POZO",
+                              Icons.attach_money,
+                              Colors.orangeAccent,
                             ),
                             _statCard(
-                              "${survivor.competition.length}",
-                              "JORNADAS",
-                              Icons.sports_soccer,
-                              Colors.white,
+                              activePlayers != null ? "$activePlayers" : "-",
+                              "SOBREVIVIENTES",
+                              Icons.people_alt,
+                              Colors.green,
                             ),
                           ],
                         ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Image.asset(
+                              "assets/penkaLogo.png",
+                              width: 22,
+                              height: 22,
+                            ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              "By PENKA",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 1),
                       ],
                     ),
                   ),
@@ -266,6 +293,7 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
             children: [
               // TAB "Por jugar"
               ListView(
+                primary: false,
                 padding: const EdgeInsets.all(8),
                 children: survivor.competition.expand((jornada) {
                   return [
@@ -309,7 +337,7 @@ class _SurvivorMatchesPageState extends State<SurvivorMatchesPage>
               ResultadosTab(survivorId: survivor.id, userId: widget.userId),
 
               // TAB "Tabla"
-              TableTab(survivorId: survivor.id),
+              TableTab(survivorId: survivor.id, currentUserId: widget.userId),
             ],
           ),
         ),

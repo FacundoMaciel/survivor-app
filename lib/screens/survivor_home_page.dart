@@ -79,7 +79,7 @@ class _HomePageState extends State<HomePage> {
                       vertical: 14,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(5),
                     ),
                   ),
                   onPressed: userId == null
