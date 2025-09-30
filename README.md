@@ -87,12 +87,20 @@ flutter run
 
 ```mermaid
 flowchart LR
-  Login --> Home
-  List --> Ligas para elegir
-  Matches --> PorJugar: es donde seleccionamos los partidos y tenemos la opcionde unirme con mis partidos
-  IMPORTANTE--> Para visualizar correctamente la tabla debemos reiniciar nuestra app cuando hayamos hecho la selección y unirme, se hace nuevamente el flujo, "comenzar", seleccion y unirme antes de simular. De esa manera tendriamos 2 o mas (depende de cuantos quiera) usuarios para comparar resultados y tener bien el ranking
-  Matches --> Resultados: Es donde (aplicado para pruebas) tenemos "simular" y el deplegable de resultados de la simulación
-  Matches --> Tabla: Es donde vemos el ranking de como quedó la competición survivor de esa lga
+  login[Login] --> home[Home]
+  home --> list[List]
+  list --> ligas[Ligas para elegir]
+  matches[Matches] --> porJugar[Por Jugar: Selección de partidos y opción de unirme]
+  matches --> resultados[Resultados: Simular y ver resultados de la simulación]
+  matches --> tabla[Tabla: Ranking de la competición survivor]
+
+  note[IMPORTANTE: Reiniciar la app tras unirse para ver la tabla correctamente. 
+  Rehacer flujo: comenzar → selección → unirme → simular. 
+  Así se crean varios usuarios para comparar resultados y ver el ranking.]:::noteStyle
+
+  porJugar -.-> note
+
+  classDef noteStyle fill=#fff3cd,stroke=#ffa500,stroke-width=2px,color=#000;
 ```
 
 ## Dependencias principales
