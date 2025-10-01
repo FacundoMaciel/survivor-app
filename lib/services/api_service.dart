@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
+import '../config.dart';
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2:4300/api/survivor'; // 10.0.2.2 para emulador Android
+  static const String baseUrl = "${AppConfig.apiBaseUrl}/api/survivor"; // "${AppConfig.apiBaseUrl}/api/survivor"
 
   Future<List<dynamic>> getSurvivors() async {
     try {
